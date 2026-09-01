@@ -76,6 +76,9 @@ supabase functions deploy tablet-displayed
 8. Set secrets in the Supabase dashboard (do not paste them into this repository or into chat):
 
 - `OPENAI_API_KEY`
+- `CLOUDFLARE_AI_GATEWAY_TOKEN` (server-only; never in client apps)
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_AI_GATEWAY_ID=decoy`
 - `GALLERY_LATITUDE` / `GALLERY_LONGITUDE`
 - `GALLERY_RADIUS_METERS=200`
 - `MAX_LOCATION_ACCURACY_METERS=500`
