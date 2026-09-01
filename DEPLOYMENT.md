@@ -39,7 +39,7 @@ Required tokens (create once, then the agent does the rest):
 
 Optional:
 
-- `VISITOR_CUSTOM_DOMAIN` — e.g. `installation.example.com`. Omit this to use the free `*.pages.dev` URL.
+- `VISITOR_CUSTOM_DOMAIN` — defaults to `decoyexhibit.download`
 - `GALLERY_LATITUDE` / `GALLERY_LONGITUDE`
 - `OPENAI_API_KEY` (omit to keep mock generation)
 - `ARTIST_OR_ORGANIZER_NAME`, `EXHIBITION_NAME`, `CONTACT_EMAIL`, `DATA_RETENTION_DESCRIPTION`

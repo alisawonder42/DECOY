@@ -307,7 +307,8 @@ async function main(): Promise<void> {
     console.log("config push skipped:", error instanceof Error ? error.message.split("\n")[0] : error);
   }
 
-  const visitorOriginPlaceholder = "https://decoy-visitor.pages.dev";
+  const visitorDomain = optional("VISITOR_CUSTOM_DOMAIN") || "decoyexhibit.download";
+  const visitorOrigin = `https://${visitorDomain}`;
   const secretPairs = [
     `GALLERY_RADIUS_METERS=${optional("GALLERY_RADIUS_METERS") || "200"}`,
     `MAX_LOCATION_ACCURACY_METERS=${optional("MAX_LOCATION_ACCURACY_METERS") || "500"}`,
@@ -325,7 +326,7 @@ async function main(): Promise<void> {
     `OPENAI_IMAGE_FORMAT=webp`,
     `MOCK_IMAGE_GENERATION=${optional("OPENAI_API_KEY") ? "false" : "true"}`,
     `DEV_SKIP_LOCATION_VERIFICATION=false`,
-    `VISITOR_WEB_ORIGIN=${optional("VISITOR_CUSTOM_DOMAIN") ? `https://${optional("VISITOR_CUSTOM_DOMAIN")}` : visitorOriginPlaceholder}`,
+    `VISITOR_WEB_ORIGIN=${visitorOrigin}`,
     `DATA_RETENTION_DESCRIPTION=${optional("DATA_RETENTION_DESCRIPTION") || "This test installation keeps participation records until the exhibition ends, then deletes them."}`,
     `ARTIST_OR_ORGANIZER_NAME=${optional("ARTIST_OR_ORGANIZER_NAME") || "Test organizer"}`,
     `EXHIBITION_NAME=${optional("EXHIBITION_NAME") || "DECOY test"}`,
@@ -384,6 +385,7 @@ async function main(): Promise<void> {
 
   if (!optional("CLOUDFLARE_API_TOKEN")) {
     console.log("\nSupabase bootstrap complete. Cloudflare token was not provided, so the visitor domain was not published.");
+    console.log(`Intended visitor URL: ${visitorOrigin}`);
     console.log(`Supabase: ${state.supabaseUrl}`);
     console.log("Visitor and tablet production env files were written locally (gitignored).");
     if (!optional("GALLERY_LATITUDE") || !optional("GALLERY_LONGITUDE")) {
@@ -447,7 +449,7 @@ async function main(): Promise<void> {
   state.pagesUrl = pagesUrl;
   saveState(state);
 
-  const customDomain = optional("VISITOR_CUSTOM_DOMAIN");
+  const customDomain = visitorDomain;
   let publicOrigin = pagesUrl;
   if (customDomain) {
     const addDomain = await cloudflareApi(
@@ -464,16 +466,21 @@ async function main(): Promise<void> {
       (item) => customDomain === item.name || customDomain.endsWith(`.${item.name}`),
     );
     if (zone) {
-      await cloudflareApi(`/zones/${zone.id}/dns_records`, {
-        method: "POST",
-        body: JSON.stringify({
-          type: "CNAME",
-          name: customDomain,
-          content: `${pagesProject}.pages.dev`,
-          proxied: true,
-        }),
-      });
-      console.log(`Created proxied CNAME ${customDomain} -> ${pagesProject}.pages.dev`);
+      const isApex = customDomain === zone.name;
+      if (isApex) {
+        console.log(`Zone ${zone.name} is on this account; Pages will flatten the apex to the project.`);
+      } else {
+        await cloudflareApi(`/zones/${zone.id}/dns_records`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "CNAME",
+            name: customDomain,
+            content: `${pagesProject}.pages.dev`,
+            proxied: true,
+          }),
+        });
+        console.log(`Created proxied CNAME ${customDomain} -> ${pagesProject}.pages.dev`);
+      }
     } else {
       console.log("Custom domain is not in this Cloudflare account; DNS was not created automatically.");
     }
