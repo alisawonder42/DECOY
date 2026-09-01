@@ -11,6 +11,16 @@ export function isAllowedVisitorOrigin(origin: string | null): boolean {
   if (!origin) return true;
   const configured = Deno.env.get("VISITOR_WEB_ORIGIN") ?? "";
   if (configured && origin === configured) return true;
+  if (configured) {
+    try {
+      const url = new URL(configured);
+      const host = url.hostname;
+      const altHost = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+      if (origin === `${url.protocol}//${altHost}`) return true;
+    } catch {
+      // ignore malformed configured origin
+    }
+  }
   return LOCAL_ORIGINS.includes(origin);
 }
 
