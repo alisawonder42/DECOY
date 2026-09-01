@@ -35,18 +35,6 @@ export function isAllowedVisitorOrigin(origin: string | null): boolean {
   }
   return LOCAL_ORIGINS.includes(origin);
 }
-  if (configured) {
-    try {
-      const url = new URL(configured);
-      const host = url.hostname;
-      const altHost = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
-      if (origin === `${url.protocol}//${altHost}`) return true;
-    } catch {
-      // ignore malformed configured origin
-    }
-  }
-  return LOCAL_ORIGINS.includes(origin);
-}
 
 export function corsHeaders(origin: string | null, extra: Record<string, string> = {}): Headers {
   const headers = new Headers({
