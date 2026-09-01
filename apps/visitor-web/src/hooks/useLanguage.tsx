@@ -18,7 +18,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     document.title =
-      language === "en" ? "How do you see it?" : "Kako ga ti vidiš?";
+      language === "en" ? "What do you see?" : "Šta ti vidiš?";
   }, [language]);
 
   const value = useMemo<LanguageContextValue>(

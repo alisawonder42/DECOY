@@ -29,6 +29,11 @@ describe("visitor copy", () => {
     expect(copy.submit.sr).toBe("POŠALJI");
   });
 
+  it("uses the requested intro titles", () => {
+    expect(copy.introTitle.en).toBe("WHAT DO YOU SEE?");
+    expect(copy.introTitle.sr).toBe("ŠTA TI VIDIŠ?");
+  });
+
   it("covers required legal points in both languages", () => {
     const sr = termsParagraphsSr.join(" ").toLowerCase();
     const en = termsParagraphsEn.join(" ").toLowerCase();

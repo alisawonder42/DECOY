@@ -5,8 +5,8 @@ export type CopyPair = {
 
 export const copy = {
   introTitle: {
-    sr: "KAKO GA TI VIDIŠ?",
-    en: "HOW DO YOU SEE IT?",
+    sr: "ŠTA TI VIDIŠ?",
+    en: "WHAT DO YOU SEE?",
   },
   introBody1: {
     sr: "Imate jednu priliku da opišete sliku pred sobom.",
