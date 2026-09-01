@@ -14,6 +14,7 @@ const SKIP_DIR = new Set([
 const FORBIDDEN = [
   /OPENAI_API_KEY\s*[:=]\s*['"]?sk-/,
   /\bsk-[A-Za-z0-9]{10,}/,
+  /\bcfut_[A-Za-z0-9]+/,
   /SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*['"][^'"]+['"]/,
   /SERVICE_ROLE\s*[:=]\s*['"][^'"]+['"]/,
 ];

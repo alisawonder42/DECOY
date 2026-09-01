@@ -12,6 +12,35 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function imageGenerationEndpoint(): string {
+  const account =
+    Deno.env.get("CLOUDFLARE_AI_GATEWAY_ACCOUNT_ID") ?? Deno.env.get("CLOUDFLARE_ACCOUNT_ID") ?? "";
+  const gateway = Deno.env.get("CLOUDFLARE_AI_GATEWAY_ID") ?? "";
+  if (account && gateway) {
+    return `https://gateway.ai.cloudflare.com/v1/${account}/${gateway}/openai/images/generations`;
+  }
+  return "https://api.openai.com/v1/images/generations";
+}
+
+function generationHeaders(): Headers {
+  const headers = new Headers({
+    "Content-Type": "application/json",
+    "cf-aig-skip-cache": "true",
+    "cf-aig-collect-log": "false",
+  });
+  const gatewayToken = Deno.env.get("CLOUDFLARE_AI_GATEWAY_TOKEN") ?? "";
+  const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+  if (gatewayToken) {
+    headers.set("cf-aig-authorization", `Bearer ${gatewayToken}`);
+  }
+  if (openaiKey) {
+    headers.set("Authorization", `Bearer ${openaiKey}`);
+  } else if (gatewayToken) {
+    headers.set("Authorization", `Bearer ${gatewayToken}`);
+  }
+  return headers;
+}
+
 export async function generateArtwork(options: {
   prompt: string;
   submissionId: string;
@@ -25,8 +54,9 @@ export async function generateArtwork(options: {
     };
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) {
+  const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+  const gatewayToken = Deno.env.get("CLOUDFLARE_AI_GATEWAY_TOKEN") ?? "";
+  if (!openaiKey && !gatewayToken) {
     throw new ApiError("OPENAI_NOT_CONFIGURED", 500);
   }
 
@@ -48,12 +78,9 @@ export async function generateArtwork(options: {
     body.output_compression = compression;
   }
 
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
+  const response = await fetch(imageGenerationEndpoint(), {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: generationHeaders(),
     body: JSON.stringify(body),
   });
 

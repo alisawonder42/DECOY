@@ -335,6 +335,13 @@ async function main(): Promise<void> {
   if (optional("GALLERY_LATITUDE")) secretPairs.push(`GALLERY_LATITUDE=${optional("GALLERY_LATITUDE")}`);
   if (optional("GALLERY_LONGITUDE")) secretPairs.push(`GALLERY_LONGITUDE=${optional("GALLERY_LONGITUDE")}`);
   if (optional("OPENAI_API_KEY")) secretPairs.push(`OPENAI_API_KEY=${optional("OPENAI_API_KEY")}`);
+  if (optional("CLOUDFLARE_AI_GATEWAY_TOKEN")) {
+    secretPairs.push(`CLOUDFLARE_AI_GATEWAY_TOKEN=${optional("CLOUDFLARE_AI_GATEWAY_TOKEN")}`);
+    secretPairs.push(
+      `CLOUDFLARE_ACCOUNT_ID=${optional("CLOUDFLARE_ACCOUNT_ID") || "7ad3dd38c4ca3189d079fb7efdc775f7"}`,
+    );
+    secretPairs.push(`CLOUDFLARE_AI_GATEWAY_ID=${optional("CLOUDFLARE_AI_GATEWAY_ID") || "decoy"}`);
+  }
   await run("supabase", ["secrets", "set", ...secretPairs, "--project-ref", ref], {
     SUPABASE_ACCESS_TOKEN: accessToken,
   });

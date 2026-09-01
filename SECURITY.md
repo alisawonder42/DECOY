@@ -3,6 +3,7 @@
 ## Secrets that must never enter a client
 
 - OpenAI API key
+- Cloudflare AI Gateway token
 - Supabase secret / service-role key
 - Database credentials
 - Plain tablet device tokens after provisioning (they live only on the device)
