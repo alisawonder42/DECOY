@@ -1,0 +1,106 @@
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  color: #eee;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+}
+
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  background: #000;
+}
+
+.artwork {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+  pointer-events: none;
+}
+
+.artwork.visible {
+  opacity: 1;
+}
+
+.artwork.incoming {
+  z-index: 2;
+}
+
+.fit-cover {
+  object-fit: cover;
+}
+
+.fit-contain {
+  object-fit: contain;
+}
+
+.secret-hit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 72px;
+  height: 72px;
+  border: 0;
+  background: transparent;
+}
+
+.staff {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.staff h1 {
+  margin: 0;
+  font-weight: 500;
+}
+
+.staff label,
+.staff input,
+.staff select,
+.staff button {
+  font: inherit;
+}
+
+.staff input,
+.staff select,
+.staff button {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.staff-error {
+  color: #d66;
+}
+
+.maintenance dl {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: 0.35rem 0.8rem;
+}
+
+.maintenance dt {
+  color: #888;
+}
+
+.maintenance dd {
+  margin: 0;
+  word-break: break-all;
+}
