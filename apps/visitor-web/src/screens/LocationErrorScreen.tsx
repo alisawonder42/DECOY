@@ -1,7 +1,7 @@
 import { copy, type CopyPair } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 
 type Kind = "denied" | "outside" | "inaccurate";
 

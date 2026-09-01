@@ -2,7 +2,7 @@ import { DESCRIPTION_MAX_LENGTH, validateDescription } from "@installation/share
 import { copy } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 
 type Props = {
   value: string;

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
-import { LanguageProvider } from "./hooks/useLanguage.ts";
+import { LanguageProvider } from "./hooks/useLanguage.tsx";
 import "./styles.css";
 
 if (window.location.hostname.endsWith(".pages.dev")) {

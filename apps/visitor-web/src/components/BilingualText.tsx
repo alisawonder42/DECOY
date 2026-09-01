@@ -1,5 +1,5 @@
 import type { CopyPair } from "../copy/index.ts";
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 
 type Tag = "p" | "h1" | "h2" | "span" | "legend";
 

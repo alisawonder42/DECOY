@@ -2,7 +2,7 @@ import { copy } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
 import { ConsentCheckbox } from "../components/ConsentCheckbox.tsx";
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 
 type Props = {
   accepted: boolean;

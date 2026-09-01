@@ -1,6 +1,6 @@
 import { copy } from "../copy/index.ts";
 import { termsParagraphsEn, termsParagraphsSr, termsMeta } from "../copy/terms.ts";
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 import { BilingualText } from "./BilingualText.tsx";
 import { Button } from "./Button.tsx";
 import { Modal } from "./Modal.tsx";

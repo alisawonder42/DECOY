@@ -1,4 +1,4 @@
-import { useLanguage } from "../hooks/useLanguage.ts";
+import { useLanguage } from "../hooks/useLanguage.tsx";
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useLanguage();
