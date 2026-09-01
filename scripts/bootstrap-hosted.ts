@@ -108,6 +108,14 @@ async function main(): Promise<void> {
   const accessToken = required("SUPABASE_ACCESS_TOKEN");
   required("CLOUDFLARE_API_TOKEN");
   const state = loadState();
+  const existingRef = optional("SUPABASE_PROJECT_REF") || "fjnuzhwefsdwnnovtjou";
+  state.supabaseRef = existingRef;
+  if (optional("SUPABASE_DB_PASSWORD")) {
+    state.dbPassword = optional("SUPABASE_DB_PASSWORD");
+  }
+  saveState(state);
+
+  const orgsResponse = await supabaseApi("/organizations");
 
   const orgsResponse = await supabaseApi("/organizations");
   if (!orgsResponse.ok) {
@@ -125,10 +133,11 @@ async function main(): Promise<void> {
   const projectsResponse = await supabaseApi("/projects");
   const projects = (await projectsResponse.json()) as Array<{ id: string; name: string; ref?: string }>;
   const existing =
+    projects.find((project) => project.id === existingRef) ??
     projects.find((project) => project.id === state.supabaseRef) ??
-    projects.find((project) => project.name === "decoy-installation");
+    projects.find((project) => /decoy/i.test(project.name));
 
-  let ref = existing?.id ?? existing?.ref ?? state.supabaseRef;
+  let ref = existing?.id ?? existing?.ref ?? existingRef;
   if (!ref) {
     const dbPassword = state.dbPassword || randomBytes(24).toString("base64url");
     state.dbPassword = dbPassword;

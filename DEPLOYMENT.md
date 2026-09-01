@@ -12,7 +12,7 @@ pnpm bootstrap:hosted
 
 That script will:
 
-1. Create (or reuse) a Supabase project named `decoy-installation`
+1. Reuse the existing Decoy project `fjnuzhwefsdwnnovtjou` (it will not create a second project)
 2. Enable anonymous sign-ins and disable email signup
 3. Push the database migration
 4. Set Edge Function secrets
