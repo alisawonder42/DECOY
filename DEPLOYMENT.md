@@ -35,7 +35,14 @@ Privileged values are written only to gitignored `.hosted-bootstrap.local.json`.
 Required tokens (create once, then the agent does the rest):
 
 - `SUPABASE_ACCESS_TOKEN` from https://supabase.com/dashboard/account/tokens
-- `CLOUDFLARE_API_TOKEN` with Account / Cloudflare Pages / Edit and Account Settings / Read. Add Zone / DNS / Edit if you also want a custom domain.
+- `CLOUDFLARE_API_TOKEN` from https://dash.cloudflare.com/profile/api-tokens  
+  Create a **custom token** (not an empty/user-only token) with:
+  - Account → Cloudflare Pages → Edit
+  - Account → Account Settings → Read
+  - Zone → Zone → Read
+  - Zone → DNS → Edit  
+  Zone resources: include `decoyexhibit.download`  
+  Put it in `.env.bootstrap` as `CLOUDFLARE_API_TOKEN=...`. Do not paste it into chat.
 
 Optional:
 
