@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Installation Tablet</string>
+    <string name="title_activity_main">Installation Tablet</string>
+    <string name="package_name">art.installation.tablet</string>
+    <string name="custom_url_scheme">art.installation.tablet</string>
+</resources>

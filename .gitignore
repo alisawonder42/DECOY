@@ -1,0 +1,44 @@
+node_modules
+dist
+build
+coverage
+.DS_Store
+*.log
+.vite
+.turbo
+*.tsbuildinfo
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+.env
+.env.*
+!.env.example
+
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+
+# Local provisioned tablet tokens — never commit
+tablet-tokens.local.json
+scripts/tablet-tokens.local.json
+
+# Android build artifacts
+apps/tablet/android/app/build
+apps/tablet/android/build
+apps/tablet/android/.gradle
+apps/tablet/android/captures
+apps/tablet/android/local.properties
+apps/tablet/android/app/.cxx
+*.apk
+*.aab
+*.ap_
+
+# Capacitor generated copies
+apps/tablet/ios
+
+# Test / OS
+.cache
+tmp
+.supabase

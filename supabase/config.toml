@@ -1,0 +1,53 @@
+project_id = "decoy-installation"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+
+[auth]
+enabled = true
+enable_signup = false
+enable_anonymous_sign_ins = true
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+[storage]
+enabled = true
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+
+[functions.participant-status]
+verify_jwt = true
+
+[functions.verify-location]
+verify_jwt = true
+
+[functions.submit-description]
+verify_jwt = true
+
+[functions.tablet-state]
+verify_jwt = false
+
+[functions.tablet-heartbeat]
+verify_jwt = false
+
+[functions.tablet-claim]
+verify_jwt = false
+
+[functions.tablet-generate]
+verify_jwt = false
+
+[functions.tablet-displayed]
+verify_jwt = false
