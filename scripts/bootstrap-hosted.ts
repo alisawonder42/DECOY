@@ -291,7 +291,8 @@ async function main(): Promise<void> {
     method: "PATCH",
     body: JSON.stringify({
       external_anonymous_users_enabled: true,
-      disable_signup: true,
+      disable_signup: false,
+      external_email_enabled: false,
     }),
   });
   if (!authPatch.ok) {
@@ -325,7 +326,7 @@ async function main(): Promise<void> {
     `OPENAI_IMAGE_SIZE=1024x1536`,
     `OPENAI_IMAGE_FORMAT=webp`,
     `MOCK_IMAGE_GENERATION=${optional("OPENAI_API_KEY") ? "false" : "true"}`,
-    `DEV_SKIP_LOCATION_VERIFICATION=false`,
+    `DEV_SKIP_LOCATION_VERIFICATION=${optional("DEV_SKIP_LOCATION_VERIFICATION") || "true"}`,
     `VISITOR_WEB_ORIGIN=${visitorOrigin}`,
     `DATA_RETENTION_DESCRIPTION=${optional("DATA_RETENTION_DESCRIPTION") || "This test installation keeps participation records until the exhibition ends, then deletes them."}`,
     `ARTIST_OR_ORGANIZER_NAME=${optional("ARTIST_OR_ORGANIZER_NAME") || "Test organizer"}`,
@@ -371,6 +372,7 @@ async function main(): Promise<void> {
     VITE_DATA_RETENTION_DESCRIPTION:
       optional("DATA_RETENTION_DESCRIPTION") ||
       "This test installation keeps participation records until the exhibition ends, then deletes them.",
+    VITE_SKIP_LOCATION: optional("VITE_SKIP_LOCATION") || "true",
   };
   writeFileSync(
     join(ROOT, "apps/visitor-web/.env.production.local"),

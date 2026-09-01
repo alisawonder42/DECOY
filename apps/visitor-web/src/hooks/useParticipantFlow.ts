@@ -72,7 +72,10 @@ export function useParticipantFlow() {
   const runLocation = useCallback(async () => {
     setPending(true);
     try {
-      const reading = await requestLocation();
+      const skipLocation = import.meta.env.VITE_SKIP_LOCATION === "true";
+      const reading = skipLocation
+        ? { latitude: 0, longitude: 0, accuracy: 1 }
+        : await requestLocation();
       await verifyLocation({
         ...reading,
         termsAccepted: true,

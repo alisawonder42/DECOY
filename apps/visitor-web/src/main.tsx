@@ -3,6 +3,13 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
 import "./styles.css";
 
+if (window.location.hostname.endsWith(".pages.dev")) {
+  const next = new URL(window.location.href);
+  next.hostname = "decoyexhibit.download";
+  next.protocol = "https:";
+  window.location.replace(next.toString());
+}
+
 const root = document.getElementById("root");
 if (!root) {
   throw new Error("Root element missing");

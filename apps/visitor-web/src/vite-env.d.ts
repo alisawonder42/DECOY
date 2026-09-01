@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_CONTACT_EMAIL: string;
   readonly VITE_TERMS_VERSION: string;
   readonly VITE_DATA_RETENTION_DESCRIPTION: string;
+  readonly VITE_SKIP_LOCATION: string;
 }
 
 interface ImportMeta {
