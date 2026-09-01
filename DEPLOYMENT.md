@@ -1,6 +1,42 @@
 # Deployment
 
-## 1. Supabase
+## Agent-driven bootstrap (preferred)
+
+You do not need to click through the Supabase or Cloudflare dashboards to create the project, push the schema, deploy functions, or publish the visitor site.
+
+From this repo, after the two API tokens are available in the environment:
+
+```bash
+pnpm bootstrap:hosted
+```
+
+That script will:
+
+1. Create (or reuse) a Supabase project named `decoy-installation`
+2. Enable anonymous sign-ins and disable email signup
+3. Push the database migration
+4. Set Edge Function secrets
+5. Deploy all Edge Functions
+6. Build the visitor app with the publishable key only
+7. Create a Cloudflare Pages project and deploy `apps/visitor-web/dist`
+8. Attach `VISITOR_CUSTOM_DOMAIN` and create a proxied CNAME when that domain’s zone is already on the same Cloudflare account
+
+Privileged values are written only to gitignored `.hosted-bootstrap.local.json`. They are never committed.
+
+Required tokens (create once, then the agent does the rest):
+
+- `SUPABASE_ACCESS_TOKEN` from https://supabase.com/dashboard/account/tokens
+- `CLOUDFLARE_API_TOKEN` with Account / Cloudflare Pages / Edit and Account Settings / Read. Add Zone / DNS / Edit if you also want a custom domain.
+
+Optional:
+
+- `VISITOR_CUSTOM_DOMAIN` — e.g. `installation.example.com`. Omit this to use the free `*.pages.dev` URL.
+- `GALLERY_LATITUDE` / `GALLERY_LONGITUDE`
+- `OPENAI_API_KEY` (omit to keep mock generation)
+- `ARTIST_OR_ORGANIZER_NAME`, `EXHIBITION_NAME`, `CONTACT_EMAIL`, `DATA_RETENTION_DESCRIPTION`
+
+## 1. Supabase (manual fallback)
+
 
 1. Create a dedicated project.
 2. Authentication → enable **Anonymous sign-ins**. Disable email signup.

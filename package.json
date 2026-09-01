@@ -13,7 +13,8 @@
     "seed:tablets": "tsx scripts/seed-tablets.ts",
     "seed:submissions": "tsx scripts/seed-submissions.ts",
     "seed:reset": "tsx scripts/reset-installation.ts",
-    "check:secrets": "tsx scripts/check-client-secrets.ts"
+    "check:secrets": "tsx scripts/check-client-secrets.ts",
+    "bootstrap:hosted": "tsx scripts/bootstrap-hosted.ts"
   },
   "dependencies": {
     "@installation/shared": "workspace:*",

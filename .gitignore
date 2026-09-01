@@ -20,9 +20,7 @@ coverage
 *.p12
 *.mobileprovision
 
-# Local provisioned tablet tokens — never commit
-tablet-tokens.local.json
-scripts/tablet-tokens.local.json
+.hosted-bootstrap.local.json
 
 # Android build artifacts
 apps/tablet/android/app/build
