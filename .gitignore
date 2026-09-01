@@ -40,3 +40,4 @@ apps/tablet/ios
 .cache
 tmp
 .supabase
+supabase/.temp
