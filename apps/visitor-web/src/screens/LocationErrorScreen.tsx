@@ -1,6 +1,7 @@
 import { copy, type CopyPair } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
+import { useLanguage } from "../hooks/useLanguage.ts";
 
 type Kind = "denied" | "outside" | "inaccurate";
 
@@ -17,13 +18,13 @@ const titles: Record<Kind, CopyPair> = {
 };
 
 export function LocationErrorScreen({ kind, pending, onRetry }: Props) {
+  const { t } = useLanguage();
   return (
     <section className="screen">
       <BilingualText pair={titles[kind]} as="h1" className="title" />
       {kind === "denied" ? <BilingualText pair={copy.locationDeniedBody} /> : null}
       <Button onClick={onRetry} disabled={pending} aria-busy={pending}>
-        {copy.tryAgain.sr}
-        <span className="btn-en">{copy.tryAgain.en}</span>
+        {t(copy.tryAgain)}
       </Button>
     </section>
   );

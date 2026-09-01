@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
+import { LanguageProvider } from "./hooks/useLanguage.ts";
 import "./styles.css";
 
 if (window.location.hostname.endsWith(".pages.dev")) {
@@ -17,6 +18,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
   </StrictMode>,
 );

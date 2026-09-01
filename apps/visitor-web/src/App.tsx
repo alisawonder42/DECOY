@@ -1,4 +1,5 @@
 import { ConfirmModal } from "./components/ConfirmModal.tsx";
+import { LanguageSwitcher } from "./components/LanguageSwitcher.tsx";
 import { TermsModal } from "./components/TermsModal.tsx";
 import { useParticipantFlow } from "./hooks/useParticipantFlow.ts";
 import { CapacityScreen } from "./screens/CapacityScreen.tsx";
@@ -12,6 +13,7 @@ export function App() {
 
   return (
     <main className="app">
+      <LanguageSwitcher />
       {flow.screen === "booting" ? <section className="screen" aria-busy="true" /> : null}
       {flow.screen === "intro" ? (
         <IntroScreen

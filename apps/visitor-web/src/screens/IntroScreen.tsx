@@ -2,6 +2,7 @@ import { copy } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
 import { ConsentCheckbox } from "../components/ConsentCheckbox.tsx";
+import { useLanguage } from "../hooks/useLanguage.ts";
 
 type Props = {
   accepted: boolean;
@@ -11,6 +12,8 @@ type Props = {
   onContinue: () => void;
 };
 
+const skipLocation = import.meta.env.VITE_SKIP_LOCATION === "true";
+
 export function IntroScreen({
   accepted,
   pending,
@@ -18,6 +21,9 @@ export function IntroScreen({
   onOpenTerms,
   onContinue,
 }: Props) {
+  const { t } = useLanguage();
+  const continueLabel = skipLocation ? copy.continue : copy.continueWithLocation;
+
   return (
     <section className="screen">
       <BilingualText pair={copy.introTitle} as="h1" className="title" />
@@ -32,8 +38,7 @@ export function IntroScreen({
         onOpenTerms={onOpenTerms}
       />
       <Button onClick={onContinue} disabled={!accepted || pending} aria-busy={pending}>
-        {copy.continue.sr}
-        <span className="btn-en">{copy.continue.en}</span>
+        {t(continueLabel)}
       </Button>
     </section>
   );

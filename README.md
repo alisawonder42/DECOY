@@ -40,7 +40,7 @@ Default image generation is mocked (`MOCK_IMAGE_GENERATION=true`). Do not spend 
 ## Manual verification (local)
 
 1. `pnpm test` — location, one-time submit, nine-tablet distribution, lease recovery, copy.
-2. Open the visitor app, confirm Serbian appears above English, no language selector.
+2. Open the visitor app, confirm it starts in English, then switch to Serbian with the EN/SR control.
 3. Confirm the continue button stays disabled until terms are accepted.
 4. Confirm a completed identity cannot see the form again.
 5. Provision a tablet ID and confirm the public screen is only black or artwork.

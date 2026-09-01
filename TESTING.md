@@ -22,7 +22,7 @@ pnpm check:secrets
 - Stale generation lease requeue; ready image reassigned without regenerating
 - Global generation pacing
 - Hidden prompt keeps the original description
-- Visitor copy is bilingual and does not say “prompt”
+- Visitor copy exists in English and Serbian and does not say “prompt”
 - Client sources do not contain privileged secret assignments
 
 ## Must be verified against a live Supabase project

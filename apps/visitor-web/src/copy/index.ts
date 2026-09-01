@@ -29,6 +29,10 @@ export const copy = {
     en: "Terms and Privacy Notice",
   },
   continue: {
+    sr: "NASTAVI",
+    en: "CONTINUE",
+  },
+  continueWithLocation: {
     sr: "DOZVOLI LOKACIJU I NASTAVI",
     en: "ALLOW LOCATION & CONTINUE",
   },
@@ -65,8 +69,8 @@ export const copy = {
     en: "There is no correct answer.",
   },
   submit: {
-    sr: "POŠALJI / SUBMIT",
-    en: "POŠALJI / SUBMIT",
+    sr: "POŠALJI",
+    en: "SUBMIT",
   },
   confirmTitle: {
     sr: "POSLATI OPIS?",

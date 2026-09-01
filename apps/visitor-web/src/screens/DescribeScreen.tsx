@@ -2,6 +2,7 @@ import { DESCRIPTION_MAX_LENGTH, validateDescription } from "@installation/share
 import { copy } from "../copy/index.ts";
 import { BilingualText } from "../components/BilingualText.tsx";
 import { Button } from "../components/Button.tsx";
+import { useLanguage } from "../hooks/useLanguage.ts";
 
 type Props = {
   value: string;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function DescribeScreen({ value, error, disabled, onChange, onSubmit }: Props) {
+  const { language, t } = useLanguage();
   const length = Array.from(value).length;
   const validation = validateDescription(value);
 
@@ -21,10 +23,11 @@ export function DescribeScreen({ value, error, disabled, onChange, onSubmit }: P
       <BilingualText pair={copy.describeBody1} />
       <BilingualText pair={copy.describeBody2} className="muted" />
       <label className="visually-hidden" htmlFor="description">
-        {copy.describeTitle.sr} / {copy.describeTitle.en}
+        {t(copy.describeTitle)}
       </label>
       <textarea
         id="description"
+        lang={language}
         value={value}
         maxLength={DESCRIPTION_MAX_LENGTH}
         onChange={(event) => onChange(event.target.value)}
@@ -39,7 +42,7 @@ export function DescribeScreen({ value, error, disabled, onChange, onSubmit }: P
       {error === "too_short" ? <BilingualText pair={copy.tooShort} className="error" /> : null}
       {error === "network" ? <BilingualText pair={copy.networkError} className="error" /> : null}
       <Button onClick={onSubmit} disabled={disabled || validation !== "ok"}>
-        {copy.submit.sr}
+        {t(copy.submit)}
       </Button>
     </section>
   );

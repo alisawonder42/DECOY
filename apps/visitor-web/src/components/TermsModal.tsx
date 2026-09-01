@@ -1,5 +1,6 @@
 import { copy } from "../copy/index.ts";
 import { termsParagraphsEn, termsParagraphsSr, termsMeta } from "../copy/terms.ts";
+import { useLanguage } from "../hooks/useLanguage.ts";
 import { BilingualText } from "./BilingualText.tsx";
 import { Button } from "./Button.tsx";
 import { Modal } from "./Modal.tsx";
@@ -9,26 +10,22 @@ type Props = {
 };
 
 export function TermsModal({ onClose }: Props) {
+  const { language, t } = useLanguage();
+  const paragraphs = language === "sr" ? termsParagraphsSr : termsParagraphsEn;
+
   return (
     <Modal onClose={onClose} labelledBy="terms-title">
       <BilingualText pair={copy.termsTitle} as="h2" className="modal-title" />
       <p id="terms-title" className="visually-hidden">
-        {copy.termsTitle.sr} / {copy.termsTitle.en}
+        {t(copy.termsTitle)}
       </p>
       <p className="terms-version">v{termsMeta.termsVersion}</p>
-      <div className="terms-columns">
-        <div lang="sr">
-          {termsParagraphsSr.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-        <div lang="en">
-          {termsParagraphsEn.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
+      <div className="terms-body" lang={language}>
+        {paragraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
       </div>
-      <Button onClick={onClose}>{copy.close.sr} / {copy.close.en}</Button>
+      <Button onClick={onClose}>{t(copy.close)}</Button>
     </Modal>
   );
 }

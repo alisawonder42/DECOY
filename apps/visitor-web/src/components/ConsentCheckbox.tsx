@@ -1,4 +1,5 @@
 import type { CopyPair } from "../copy/index.ts";
+import { useLanguage } from "../hooks/useLanguage.ts";
 
 type Props = {
   checked: boolean;
@@ -15,6 +16,7 @@ export function ConsentCheckbox({
   onOpenTerms,
   termsLink,
 }: Props) {
+  const { language, t } = useLanguage();
   return (
     <div className="consent">
       <label className="consent-row">
@@ -23,16 +25,10 @@ export function ConsentCheckbox({
           checked={checked}
           onChange={(event) => onChange(event.target.checked)}
         />
-        <span className="bilingual">
-          <span lang="sr">{label.sr}</span>
-          <span lang="en">{label.en}</span>
-        </span>
+        <span lang={language}>{t(label)}</span>
       </label>
-      <button type="button" className="text-link" onClick={onOpenTerms}>
-        <span className="bilingual">
-          <span lang="sr">{termsLink.sr}</span>
-          <span lang="en">{termsLink.en}</span>
-        </span>
+      <button type="button" className="text-link" onClick={onOpenTerms} lang={language}>
+        {t(termsLink)}
       </button>
     </div>
   );

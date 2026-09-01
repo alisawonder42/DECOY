@@ -10,7 +10,7 @@ The image model never receives a photograph of the original painting. It receive
 
 ## Visitor
 
-Anonymous Supabase session. One submission per anonymous browser identity, enforced by a unique database constraint and `create_submission_once`. Location is verified server-side with Haversine; coordinates are discarded. Terms + privacy are bilingual (Serbian Latin first, English below). After submit, the phone only shows thank-you.
+Anonymous Supabase session. One submission per anonymous browser identity, enforced by a unique database constraint and `create_submission_once`. Location is verified server-side with Haversine; coordinates are discarded. The visitor app starts in English, with a control to switch to Serbian. After submit, the phone only shows thank-you.
 
 ## Tablets
 
