@@ -1,10 +1,14 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
+import { createClient } from "@supabase/supabase-js";
+import { TABLET_IDS } from "@installation/shared";
 
 const ROOT = process.cwd();
 const STATE_PATH = join(ROOT, ".hosted-bootstrap.local.json");
+const BOOTSTRAP_ENV_PATH = join(ROOT, ".env.bootstrap");
+const TABLET_TOKENS_PATH = join(ROOT, ".tablet-tokens.local.json");
 const SUPABASE_API = "https://api.supabase.com/v1";
 const CF_API = "https://api.cloudflare.com/client/v4";
 
@@ -30,6 +34,99 @@ function required(name: string): string {
 
 function optional(name: string): string {
   return process.env[name]?.trim() ?? "";
+}
+
+function loadBootstrapEnv(): void {
+  if (!existsSync(BOOTSTRAP_ENV_PATH)) return;
+  for (const rawLine of readFileSync(BOOTSTRAP_ENV_PATH, "utf8").split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq < 1) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if (
+      (value.startsWith("'") && value.endsWith("'")) ||
+      (value.startsWith('"') && value.endsWith('"'))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+async function sqlQuery(ref: string, query: string): Promise<{ ok: boolean; status: number; text: string }> {
+  const response = await supabaseApi(`/projects/${ref}/database/query`, {
+    method: "POST",
+    body: JSON.stringify({ query }),
+  });
+  const text = await response.text();
+  return { ok: response.ok, status: response.status, text };
+}
+
+async function schemaAlreadyApplied(ref: string): Promise<boolean> {
+  const result = await sqlQuery(
+    ref,
+    "select tablename from pg_tables where schemaname = 'public' and tablename = 'submissions'",
+  );
+  return result.ok && /submissions/.test(result.text);
+}
+
+async function applySchema(ref: string, dbPassword?: string): Promise<void> {
+  if (await schemaAlreadyApplied(ref)) {
+    console.log("Database schema already present");
+    return;
+  }
+  if (dbPassword) {
+    try {
+      await run(
+        "supabase",
+        ["link", "--project-ref", ref, "--yes", "--password", dbPassword],
+        { SUPABASE_ACCESS_TOKEN: required("SUPABASE_ACCESS_TOKEN") },
+      );
+      await run("supabase", ["db", "push", "--yes"], {
+        SUPABASE_ACCESS_TOKEN: required("SUPABASE_ACCESS_TOKEN"),
+      });
+      console.log("Schema pushed via Supabase CLI");
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log("CLI db push failed; applying migration via Management API");
+      if (!/password authentication failed/i.test(message)) {
+        console.log(message.split("\n")[0]);
+      }
+    }
+  }
+  const sql = readFileSync(join(ROOT, "supabase/migrations/20260301000000_init.sql"), "utf8");
+  const applied = await sqlQuery(ref, sql);
+  if (!applied.ok && !(await schemaAlreadyApplied(ref))) {
+    throw new Error(`Could not apply schema (${applied.status}): ${applied.text.slice(0, 500)}`);
+  }
+  console.log("Database schema applied");
+}
+
+async function provisionTablets(url: string, serviceRoleKey: string): Promise<void> {
+  const admin = createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const tokens: Record<string, string> = existsSync(TABLET_TOKENS_PATH)
+    ? (JSON.parse(readFileSync(TABLET_TOKENS_PATH, "utf8")) as Record<string, string>)
+    : {};
+  for (const tabletId of TABLET_IDS) {
+    if (tokens[tabletId]) continue;
+    const token = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const { error } = await admin.from("tablets").upsert(
+      { id: tabletId, token_hash: tokenHash, enabled: true },
+      { onConflict: "id" },
+    );
+    if (error) throw error;
+    tokens[tabletId] = token;
+  }
+  writeFileSync(TABLET_TOKENS_PATH, JSON.stringify(tokens, null, 2) + "\n", { mode: 0o600 });
+  console.log(`Tablet device tokens written to ${TABLET_TOKENS_PATH} (gitignored)`);
 }
 
 function loadState(): State {
@@ -80,7 +177,10 @@ async function supabaseApi(path: string, init: RequestInit = {}): Promise<Respon
 }
 
 async function cloudflareApi(path: string, init: RequestInit = {}): Promise<Response> {
-  const token = required("CLOUDFLARE_API_TOKEN");
+  const token = optional("CLOUDFLARE_API_TOKEN");
+  if (!token) {
+    throw new Error("CLOUDFLARE_API_TOKEN missing");
+  }
   return fetch(`${CF_API}${path}`, {
     ...init,
     headers: {
@@ -105,8 +205,8 @@ async function waitForProject(ref: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  loadBootstrapEnv();
   const accessToken = required("SUPABASE_ACCESS_TOKEN");
-  required("CLOUDFLARE_API_TOKEN");
   const state = loadState();
   const existingRef = optional("SUPABASE_PROJECT_REF") || "fjnuzhwefsdwnnovtjou";
   state.supabaseRef = existingRef;
@@ -114,8 +214,6 @@ async function main(): Promise<void> {
     state.dbPassword = optional("SUPABASE_DB_PASSWORD");
   }
   saveState(state);
-
-  const orgsResponse = await supabaseApi("/organizations");
 
   const orgsResponse = await supabaseApi("/organizations");
   if (!orgsResponse.ok) {
@@ -174,9 +272,13 @@ async function main(): Promise<void> {
   const keysResponse = await supabaseApi(`/projects/${ref}/api-keys`);
   const keys = (await keysResponse.json()) as Array<{ name?: string; api_key?: string; type?: string }>;
   const publishable =
-    keys.find((key) => /publishable|anon/i.test(`${key.name ?? ""} ${key.type ?? ""}`))?.api_key ?? "";
+    keys.find((key) => key.name === "anon")?.api_key ??
+    keys.find((key) => key.type === "publishable")?.api_key ??
+    "";
   const secret =
-    keys.find((key) => /secret|service_role/i.test(`${key.name ?? ""} ${key.type ?? ""}`))?.api_key ?? "";
+    keys.find((key) => key.name === "service_role")?.api_key ??
+    keys.find((key) => key.type === "secret" && !/·|\u00b7/.test(key.api_key ?? ""))?.api_key ??
+    "";
   if (!publishable || !secret) {
     throw new Error("Could not read Supabase publishable/secret API keys");
   }
@@ -198,14 +300,7 @@ async function main(): Promise<void> {
     console.log("Anonymous sign-ins enabled; email signup disabled");
   }
 
-  await run("supabase", [
-    "link",
-    "--project-ref",
-    ref,
-    "--yes",
-    ...(state.dbPassword ? ["--password", state.dbPassword] : []),
-  ], { SUPABASE_ACCESS_TOKEN: accessToken });
-  await run("supabase", ["db", "push", "--yes"], { SUPABASE_ACCESS_TOKEN: accessToken });
+  await applySchema(ref, state.dbPassword);
   try {
     await run("supabase", ["config", "push", "--yes"], { SUPABASE_ACCESS_TOKEN: accessToken });
   } catch (error) {
@@ -214,8 +309,6 @@ async function main(): Promise<void> {
 
   const visitorOriginPlaceholder = "https://decoy-visitor.pages.dev";
   const secretPairs = [
-    `GALLERY_LATITUDE=${optional("GALLERY_LATITUDE")}`,
-    `GALLERY_LONGITUDE=${optional("GALLERY_LONGITUDE")}`,
     `GALLERY_RADIUS_METERS=${optional("GALLERY_RADIUS_METERS") || "200"}`,
     `MAX_LOCATION_ACCURACY_METERS=${optional("MAX_LOCATION_ACCURACY_METERS") || "500"}`,
     `LOCATION_VERIFICATION_TTL_MINUTES=60`,
@@ -233,14 +326,14 @@ async function main(): Promise<void> {
     `MOCK_IMAGE_GENERATION=${optional("OPENAI_API_KEY") ? "false" : "true"}`,
     `DEV_SKIP_LOCATION_VERIFICATION=false`,
     `VISITOR_WEB_ORIGIN=${optional("VISITOR_CUSTOM_DOMAIN") ? `https://${optional("VISITOR_CUSTOM_DOMAIN")}` : visitorOriginPlaceholder}`,
-    `ARTIST_OR_ORGANIZER_NAME=${optional("ARTIST_OR_ORGANIZER_NAME")}`,
-    `EXHIBITION_NAME=${optional("EXHIBITION_NAME")}`,
-    `CONTACT_EMAIL=${optional("CONTACT_EMAIL")}`,
-    `DATA_RETENTION_DESCRIPTION=${optional("DATA_RETENTION_DESCRIPTION")}`,
+    `DATA_RETENTION_DESCRIPTION=${optional("DATA_RETENTION_DESCRIPTION") || "This test installation keeps participation records until the exhibition ends, then deletes them."}`,
+    `ARTIST_OR_ORGANIZER_NAME=${optional("ARTIST_OR_ORGANIZER_NAME") || "Test organizer"}`,
+    `EXHIBITION_NAME=${optional("EXHIBITION_NAME") || "DECOY test"}`,
+    `CONTACT_EMAIL=${optional("CONTACT_EMAIL") || "test@example.com"}`,
   ];
-  if (optional("OPENAI_API_KEY")) {
-    secretPairs.push(`OPENAI_API_KEY=${optional("OPENAI_API_KEY")}`);
-  }
+  if (optional("GALLERY_LATITUDE")) secretPairs.push(`GALLERY_LATITUDE=${optional("GALLERY_LATITUDE")}`);
+  if (optional("GALLERY_LONGITUDE")) secretPairs.push(`GALLERY_LONGITUDE=${optional("GALLERY_LONGITUDE")}`);
+  if (optional("OPENAI_API_KEY")) secretPairs.push(`OPENAI_API_KEY=${optional("OPENAI_API_KEY")}`);
   await run("supabase", ["secrets", "set", ...secretPairs, "--project-ref", ref], {
     SUPABASE_ACCESS_TOKEN: accessToken,
   });
@@ -259,6 +352,48 @@ async function main(): Promise<void> {
     SUPABASE_ACCESS_TOKEN: accessToken,
   });
   console.log("Edge Functions deployed");
+
+  const visitorEnv = {
+    VITE_SUPABASE_URL: state.supabaseUrl ?? "",
+    VITE_SUPABASE_PUBLISHABLE_KEY: publishable,
+    VITE_ARTIST_OR_ORGANIZER_NAME: optional("ARTIST_OR_ORGANIZER_NAME") || "Test organizer",
+    VITE_EXHIBITION_NAME: optional("EXHIBITION_NAME") || "DECOY test",
+    VITE_CONTACT_EMAIL: optional("CONTACT_EMAIL") || "test@example.com",
+    VITE_TERMS_VERSION: optional("TERMS_VERSION") || "1.0",
+    VITE_DATA_RETENTION_DESCRIPTION:
+      optional("DATA_RETENTION_DESCRIPTION") ||
+      "This test installation keeps participation records until the exhibition ends, then deletes them.",
+  };
+  writeFileSync(
+    join(ROOT, "apps/visitor-web/.env.production.local"),
+    Object.entries(visitorEnv)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n") + "\n",
+    { mode: 0o600 },
+  );
+
+  const tabletEnv = [
+    `VITE_SUPABASE_URL=${state.supabaseUrl}`,
+    `VITE_SUPABASE_PUBLISHABLE_KEY=${publishable}`,
+    `VITE_API_BASE_URL=${state.supabaseUrl}/functions/v1`,
+    `VITE_APP_VERSION=0.1.0`,
+    `VITE_IMAGE_FIT=cover`,
+  ].join("\n");
+  writeFileSync(join(ROOT, "apps/tablet/.env.production.local"), tabletEnv + "\n", { mode: 0o600 });
+  await provisionTablets(state.supabaseUrl ?? "", secret);
+
+  if (!optional("CLOUDFLARE_API_TOKEN")) {
+    console.log("\nSupabase bootstrap complete. Cloudflare token was not provided, so the visitor domain was not published.");
+    console.log(`Supabase: ${state.supabaseUrl}`);
+    console.log("Visitor and tablet production env files were written locally (gitignored).");
+    if (!optional("GALLERY_LATITUDE") || !optional("GALLERY_LONGITUDE")) {
+      console.log("Gallery coordinates were not set; location checks will fail until they are.");
+    }
+    if (!optional("OPENAI_API_KEY")) {
+      console.log("OPENAI_API_KEY was not set; mock image generation remains enabled.");
+    }
+    return;
+  }
 
   let accountId = optional("CLOUDFLARE_ACCOUNT_ID");
   if (!accountId) {
@@ -285,23 +420,6 @@ async function main(): Promise<void> {
       console.log("Pages project create:", createProject.status, text);
     }
   }
-
-  const visitorEnv = {
-    VITE_SUPABASE_URL: state.supabaseUrl ?? "",
-    VITE_SUPABASE_PUBLISHABLE_KEY: publishable,
-    VITE_ARTIST_OR_ORGANIZER_NAME: optional("ARTIST_OR_ORGANIZER_NAME"),
-    VITE_EXHIBITION_NAME: optional("EXHIBITION_NAME"),
-    VITE_CONTACT_EMAIL: optional("CONTACT_EMAIL"),
-    VITE_TERMS_VERSION: optional("TERMS_VERSION") || "1.0",
-    VITE_DATA_RETENTION_DESCRIPTION: optional("DATA_RETENTION_DESCRIPTION"),
-  };
-  writeFileSync(
-    join(ROOT, "apps/visitor-web/.env.production.local"),
-    Object.entries(visitorEnv)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("\n") + "\n",
-    { mode: 0o600 },
-  );
 
   await run("pnpm", ["--filter", "visitor-web", "build"], visitorEnv);
   const deployOut = await run(
@@ -369,15 +487,6 @@ async function main(): Promise<void> {
     ["secrets", "set", `VISITOR_WEB_ORIGIN=${publicOrigin}`, "--project-ref", ref],
     { SUPABASE_ACCESS_TOKEN: accessToken },
   );
-
-  const tabletEnv = [
-    `VITE_SUPABASE_URL=${state.supabaseUrl}`,
-    `VITE_SUPABASE_PUBLISHABLE_KEY=${publishable}`,
-    `VITE_API_BASE_URL=${state.supabaseUrl}/functions/v1`,
-    `VITE_APP_VERSION=0.1.0`,
-    `VITE_IMAGE_FIT=cover`,
-  ].join("\n");
-  writeFileSync(join(ROOT, "apps/tablet/.env.production.local"), tabletEnv + "\n", { mode: 0o600 });
 
   console.log("\nHosted bootstrap complete.");
   console.log(`Visitor URL: ${publicOrigin}`);

@@ -4,9 +4,18 @@
 
 You do not need to click through the Supabase or Cloudflare dashboards to create the project, push the schema, deploy functions, or publish the visitor site.
 
-From this repo, after the two API tokens are available in the environment:
+You do not paste tokens into a dashboard form. Put them in a gitignored file at the repo root:
+
+1. Copy `.env.bootstrap.example` to `.env.bootstrap`
+2. Put `SUPABASE_ACCESS_TOKEN` there (from https://supabase.com/dashboard/account/tokens)
+3. Optionally put `SUPABASE_DB_PASSWORD` and `CLOUDFLARE_API_TOKEN` there too
+4. Run `pnpm bootstrap:hosted`
+
+The script reads `.env.bootstrap` automatically. Do not put these values in git, in client apps, or back into chat.
 
 ```bash
+cp .env.bootstrap.example .env.bootstrap
+# edit .env.bootstrap
 pnpm bootstrap:hosted
 ```
 
