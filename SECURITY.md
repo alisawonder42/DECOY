@@ -34,7 +34,7 @@ Acceptable logs: submission IDs, tablet IDs, status transitions, sanitized error
 
 ## CORS
 
-Visitor functions allow only `VISITOR_WEB_ORIGIN` plus local development origins. Unknown origins are rejected.
+Visitor functions allow `VISITOR_WEB_ORIGIN` (and its www/apex counterpart), the Cloudflare Pages project host `decoy-visitor.pages.dev` (including preview subdomains), and local development origins. Unknown origins are rejected.
 
 ## Expected limitation
 

@@ -7,10 +7,34 @@ const LOCAL_ORIGINS = [
   "http://127.0.0.1:5174",
 ];
 
+const PAGES_HOST = "decoy-visitor.pages.dev";
+
+function isPagesFallbackOrigin(origin: string): boolean {
+  try {
+    const host = new URL(origin).hostname;
+    return host === PAGES_HOST || host.endsWith(`.${PAGES_HOST}`);
+  } catch {
+    return false;
+  }
+}
+
 export function isAllowedVisitorOrigin(origin: string | null): boolean {
   if (!origin) return true;
+  if (isPagesFallbackOrigin(origin)) return true;
   const configured = Deno.env.get("VISITOR_WEB_ORIGIN") ?? "";
   if (configured && origin === configured) return true;
+  if (configured) {
+    try {
+      const url = new URL(configured);
+      const host = url.hostname;
+      const altHost = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+      if (origin === `${url.protocol}//${altHost}`) return true;
+    } catch {
+      // ignore malformed configured origin
+    }
+  }
+  return LOCAL_ORIGINS.includes(origin);
+}
   if (configured) {
     try {
       const url = new URL(configured);
