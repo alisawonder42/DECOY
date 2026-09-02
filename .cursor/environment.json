@@ -1,0 +1,26 @@
+{
+  "name": "DECOY interactive gallery installation",
+  "install": "pnpm install --frozen-lockfile",
+  "terminals": [
+    {
+      "name": "visitor-web",
+      "command": "pnpm dev:visitor",
+      "description": "Visitor phone web app (Vite dev server) on http://localhost:5173"
+    },
+    {
+      "name": "tablet",
+      "command": "pnpm dev:tablet",
+      "description": "Tablet display app (Vite dev server) on http://localhost:5174"
+    }
+  ],
+  "ports": [
+    {
+      "name": "visitor-web",
+      "port": 5173
+    },
+    {
+      "name": "tablet",
+      "port": 5174
+    }
+  ]
+}
